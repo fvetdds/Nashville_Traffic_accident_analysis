@@ -3,16 +3,81 @@
 
 library(shiny)
 
-# Define UI for application that draws a histogram
-
-
 fluidPage(
+  tags$head(
+    tags$style(HTML(" 
+    .custom-title {
+      font-size: 36pt;
+      font-weight: bold;
+      color: #333333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+                    /* Navbar Background - Sky Blue */
+                      .navbar-default {
+                        background-color: #3498DB !important;
+                          border-color: #3498DB;
+                      }
+                    .navbar-default .navbar-brand, 
+                    .navbar-default .navbar-nav > li > a {
+                      color: white !important; /* White text for contrast */
+                    }
+                    
+                    /* Active Tab Styling - Golden Yellow */
+                      .navbar-default .navbar-nav > .active > a, 
+                    .navbar-default .navbar-nav > .active > a:focus, 
+                    .navbar-default .navbar-nav > .active > a:hover {
+                      background-color: #F39C12 !important;
+                        color: white !important;
+                    }
+                    
+                    /* Sidebar Panel - Light Gray */
+                      .well {
+                        background-color: #F8F9FA !important;
+                          color: black !important;
+                        border-radius: 8px;
+                        padding: 15px;
+                      }
+                    
+                    /* Input Labels - Dark Gray for Readability */
+                      label {
+                        font-weight: bold;
+                        color: #333333 !important;
+                      }
+                    
+                    /* Dropdown Menus */
+                      .selectize-input {
+                        background-color: white !important;
+                        color: black !important;
+                      }
+                    
+                    /* Slider Input - Golden Yellow */
+                      .irs-bar {
+                        background: #F39C12 !important;
+                      }
+                    
+                    /* Buttons - Teal */
+                      .btn {
+                        background-color: #17A2B8 !important;
+                          color: white !important;
+                        border-radius: 5px;
+                      }
+                    
+                    /* Main Panel - Light Gray */
+                      .mainPanel {
+                        background-color: #F8F9FA;
+                          padding: 10px;
+                        border-radius: 5px;
+                      }
+                    "))
+  ),
+  
   
   # Application title
-  titlePanel("Music City CrashView"),
+  div(class = "shiny-title-panel"),
   
-  # Sidebar with inputs for date range and collision type
-  navbarPage("Traffic Accident Analyzer",
+  # create a navigation bar with 4 tabs and  users can use 4 filters for 1.date range, 2.weather, 3.illumination type and 4.time of the day
+  navbarPage("Music City CrashView Application",
              tabPanel("Interactive Crash Map",
                       sidebarLayout(
                         sidebarPanel(
@@ -43,6 +108,7 @@ fluidPage(
                             step = 1
                           )
                         ),
+  # leafletOutput will create an interactive map to visualizes accidents
                         mainPanel(
                           leafletOutput("accidentMap", height = "700px")
                         )
@@ -118,23 +184,23 @@ fluidPage(
                         )
                       )
              ),
-             tabPanel("Accident Probability Prediction",
+             tabPanel("Accident Statistical data",
                       sidebarLayout(
                         sidebarPanel(
                           selectInput(
-                            "weatherTab5",
+                            "weatherTab4",
                             "Weather Condition:",
                             choices = unique(accidents$Weather.Description),
                             selected = unique(accidents$Weather.Description)[1]
                           ),
                           selectInput(
-                            "illuminationTab5",
+                            "illuminationTab4",
                             "Illumination Condition:",
                             choices = unique(accidents$Illumination.Description),
                             selected = unique(accidents$Illumination.Description)[1]
                           ),
                           sliderInput(
-                            "timeOfDayTab5",
+                            "timeOfDayTab4",
                             "Time of Day (Hour):",
                             min = 0,
                             max = 23,
@@ -145,7 +211,7 @@ fluidPage(
                         mainPanel(
                           plotOutput("accidentProbabilityChart", height = "500px")
                         )
-                      )
-             )
+                   )
+           )
   )
 )
