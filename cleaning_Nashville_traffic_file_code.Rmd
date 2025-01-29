@@ -1,0 +1,46 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+**Data cleaning process**
+```{r}
+traffic_accident <- read.csv("c:/Users/vetdd/Documents/traffic_Accidents.csv")
+
+```
+**remove rows with no values**
+
+```{r}
+Nashville_traffic_accident <- traffic_accident %>%
+  filter(!is.na(Zip.Code & Weather)) %>%
+  mutate(Property.Damage = ifelse(Property.Damage == "", "N", Property.Damage),Illumination.Description
+          = ifelse(Illumination.Description == "", "na", Illumination.Description))
+Nashville_traffic_accident <- Nashville_traffic_accident %>% filter(Illumination.Description != "na")
+head(Nashville_traffic_accident)
+```
+**set up date time column to POSIXct format to work with shiny app
+
+```{r}
+Nashville_traffic_accident <- Nashville_traffic_accident %>%
+  mutate(Date.and.Time = trimws(Date.and.Time)) %>%
+   mutate(Date.and.Time = parse_date_time(Date.and.Time, orders = c("mdy HM", "mdy HMS"), tz = "America/Chicago")) %>%
+  mutate(Date.and.Time = format(Date.and.Time, "%Y-%m-%d %H:%M:%S")) 
+Nashville_traffic_accident$Date.and.Time <- as.POSIXct(Nashville_traffic_accident$Date.and.Time, format = "%Y-%m-%d %H:%M:%S")
+
+# Verify the conversion
+str(Nashville_traffic_accident$Date.and.Time)
+```
+
+
+
+```{r}
+directory <- "c:/Users/vetdd/documents/NSS_project/Nashville_Traffic_accident_analysis/data"
+filename <- "Nashville_traffic_accident.csv"
+filepath <- file.path(directory, filename)
+write.csv(Nashville_traffic_accident, file = filepath, row.names = FALSE)
+```
+
