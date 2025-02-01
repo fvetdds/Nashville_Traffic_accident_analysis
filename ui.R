@@ -16,7 +16,7 @@ fluidPage(
              tabPanel("Interactive Crash Map",
                       sidebarLayout(
                         sidebarPanel(
-                          dateRangeInput(
+                          dateRangeInput( 
                             "dateRange",
                             "Select Date Range:",
                             start = min(accidents$Date.and.Time, na.rm = TRUE),
@@ -57,7 +57,12 @@ fluidPage(
                       sidebarLayout(
                         sidebarPanel(
                           selectInput("statChart", "Select Chart:", choices = c(
-                            "Top Zip code for accidents", "Top Preclints for accidents", "Injuries vs Non-injury", "Accident Fatalities distribution", "Hit&Run insight"
+                            "Top Zip code for accidents", "Top Preclincts for accidents", 
+                            "How Often Do Traffic Accidents Lead to Injuries?", 
+                            "Fatal Accidents: Trends and Impact Across Locations", 
+                            "Hit-and-Run Cases: Pattern and Impact", 
+                            "Impactful Events in Traffic Crashes: A Data Overview", 
+                            "Breakdown of Collision Types in Traffic Accidents"
                           )),
                           sliderInput("numZipCodes", "Number of Zip Codes to Show:", min = 1, max = 10, value = 5)
                         ),
@@ -69,7 +74,7 @@ fluidPage(
              tabPanel("Understanding Crash Risks",
                       sidebarLayout(
                         sidebarPanel(
-                          selectInput("riskFactor", "Select Factor:", choices = c("Weather", "Illumination", "Hour"))
+                          selectInput("riskFactorTab3", "Select Factor:", choices = c("Weather", "Illumination", "Hour"))
                         ),
                         mainPanel(
                           conditionalPanel(condition = "input.riskFactor == 'weather'",plotOutput("weatherImpact", height = "500px")),

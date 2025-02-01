@@ -5,11 +5,12 @@ library(glue)
 library(sf) 
 library(lme4)
 library(leaflet)
-library(shinythemes)
+library(shinythemes) 
 library(DT)
 library(scales)
 library(rsconnect)
 library(broom)
+
 
 
 
@@ -24,5 +25,7 @@ accidents <- accidents %>%
     Hour = as.integer(format(Date.and.Time, "%H")),
     Weekday = weekdays(Date.and.Time),
     DayType = ifelse(Weekday %in% c("Saturday", "Sunday"), "Weekend", "Weekday"),
-    Zip.Code = as.character(Zip.Code)
-  )
+    Zip.Code = as.character(Zip.Code),
+    Accident = ifelse(Number.of.Injuries>0, 1, 0)
+      )
+accidents$Fatality_category <- ifelse(accidents$Number.of.Fatalities == 0, "No Fatalities", ">1 Fatalities")

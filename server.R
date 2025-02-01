@@ -3,25 +3,34 @@
 library(shiny)
 function(input, output, session) { 
   filteredData <- reactive({
-    accidents %>%
+    accidents %>% 
       filter(Date.and.Time >= input$dateRange[1] & Date.and.Time <= input$dateRange[2],
              (input$weather == "All" | Weather.Description == input$weather),
-             (input$illumination == "All" | Illumination.Description == input$illumination))
-  })
+             (input$illumination == "All" | Illumination.Description == input$illumination),
+    Hour >= input$timeOfDay[1] & Hour <= input$timeOfDay[2])
+    })
   
   # 🔹 **Interactive Crash Map**
   output$accidentMap <- renderLeaflet({
-    leaflet() %>% addTiles() %>%
+    leaflet() %>% 
+      addTiles() %>%
       setView(lng = mean(accidents$Longitude, na.rm = TRUE), lat = mean(accidents$Latitude, na.rm = TRUE), zoom = 10)
   })
   
   observe({
     data <- filteredData()
-    pal <- colorBin("YlOrRd", domain = data$Number.of.Fatalities, bins = 3, na.color = "gray")
+    pal <- colorFactor(
+      palette = c("gray", "red"),
+      levels = c("No Fatalities", "With Fatalities")
+    )
     
     leafletProxy("accidentMap", data = data) %>%
-      clearMarkers() %>% clearControls() %>%
-      addCircleMarkers(lng = ~Longitude, lat = ~Latitude, color = "#2C3E50", fillColor = ~pal(Number.of.Fatalities),
+      clearMarkers() %>% 
+      clearControls() %>%
+      addCircleMarkers(lng = ~Longitude, 
+                       lat = ~Latitude, 
+                       color = "#2C3E50", 
+                       fillColor = ~pal(Fatality_category),
                        radius = ~ifelse(Number.of.Injuries > 0, 4 + (Number.of.Injuries * 1.5), 3),
                        fillOpacity = 0.7, stroke = TRUE, weight = 0.5, group = "Filtered",
                        popup = ~paste("<b>Date:</b>", Date.and.Time, "<br><b>Injuries:</b>", Number.of.Injuries,
@@ -31,7 +40,7 @@ function(input, output, session) {
       addControl(paste0("<h4 style='color: black; background: white; padding: 5px; border-radius: 5px;'>",
                         "Total Accidents: <b>", format(nrow(data), big.mark = ","), "</b></h4>"),
                  position = "topright") %>%
-      addLegend("bottomright", pal = pal, values = data$Number.of.Fatalities, title = "Fatalities per Accident", opacity = 1)
+      addLegend("bottomright", colors = c("gray", "red"), labels = c("No Fatalities", "With Fatalities"), values = filteredData$Fatality_category, title = "Fatalities in Accident", opacity = 1)
   })
   
   # 🔹 **Accident Statistical Data (Multiple Plots)**
@@ -62,37 +71,117 @@ function(input, output, session) {
   })
   
   # 🔹 **Accident Probability Logistic Regression**
-  output$accidentLogisticPlot <- renderPlot({
-    data <- filteredData() %>%
-      mutate(Accident = ifelse(Number.of.Injuries > 0 | Number.of.Fatalities > 0, 1, 0),
-             Weather = factor(Weather.Description),
-             Illumination = factor(Illumination.Description),
-             Hour = as.numeric(format(Date.and.Time, "%H")))
-    
-    model <- glm(Accident ~ Weather + Illumination + Hour, data = data, family = binomial)
-    pred_data <- data %>% group_by(Hour) %>% summarize(Accident_Prob = mean(predict(model, newdata = ., type = "response")), .groups = "drop")
-    
-    ggplot(pred_data, aes(x = Hour, y = Accident_Prob)) +
-      geom_line(color = "red", size = 1) + geom_point(color = "blue") +
-      labs(title = "Predicted Probability of an Accident by Hour", x = "Time of Day (Hour)", y = "Probability of an Accident") +
-      theme_minimal()
+  
+  filteredDataTab3 <- reactive({
+    accidents %>%
+      filter((input$weather == "All" | Weather == input$weather),
+             (input$illumination == "All" | Illumination == input$illumination),
+             Hour >= input$timeOfDay[1] & Hour <= input$timeOfDay[2])
+  })
+  
+  # 🔹 **Probability of Each Weather Condition Causing an Accident**
+  output$weatherImpact <- renderPlot({
+    if (input$riskFactorTab3 == "Weather") {
+      data <- filteredDataTab3()
+      model <- glm(Accident ~ Weather, data = data, family = binomial)
+      
+      probabilities <- model %>%
+        tidy() %>%
+        filter(term != "(Intercept)") %>%
+        mutate(
+          Weather = sub("Weather", "", term),
+          Probability = plogis(estimate)
+        )
+      
+      ggplot(probabilities, aes(x = reorder(Weather, Probability), y = Probability, fill = Probability)) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        labs(title = "Probability of an Accident by Weather Condition",
+             x = "Weather Condition", y = "Probability of Accident") +
+        theme_minimal()
+    }
+  })
+  
+  # 🔹 **Probability of Illumination Condition Causing an Accident**
+  output$illuminationImpact <- renderPlot({
+    if (input$riskFactorTab3 == "Illumination") {
+      data <- filteredDataTab3()
+      model <- glm(Accident ~ Illumination, data = data, family = binomial)
+      
+      probabilities <- model %>%
+        tidy() %>%
+        filter(term != "(Intercept)") %>%
+        mutate(
+          Illumination = sub("Illumination", "", term),
+          Probability = plogis(estimate)
+        )
+      
+      ggplot(probabilities, aes(x = reorder(Illumination, Probability), y = Probability, fill = Probability)) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        labs(title = "Probability of an Accident by Illumination Condition",
+             x = "Illumination Condition", y = "Probability of Accident") +
+        theme_minimal()
+    }
+  })
+  
+  # 🔹 **Probability of Hourly Accident Occurrence**
+  output$HourImpact <- renderPlot({
+    if (input$riskFactorTab3 == "Hour") {
+      data <- filteredDataTab3()
+      model <- glm(Accident ~ Hour, data = data, family = binomial)
+      
+      pred_data <- data %>%
+        group_by(Hour) %>%
+        summarize(Accident_Prob = mean(predict(model, newdata = ., type = "response")), .groups = "drop")
+      
+      ggplot(pred_data, aes(x = Hour, y = Accident_Prob)) +
+        geom_line(color = "red", size = 1) +
+        geom_point(color = "blue") +
+        labs(title = "Predicted Probability of an Accident by Hour",
+             x = "Time of Day (Hour)", y = "Probability of an Accident") +
+        theme_minimal()
+    }
   })
   
   # 🔹 **Trend & Time Analysis**
   output$Trend <- renderPlot({
-    data <- filteredData() %>% count(Date = as.Date(Date.and.Time))
+    data <- filteredDataTab3() %>%
+      count(Date = as.Date(Date.and.Time))
+    
     ggplot(data, aes(x = Date, y = n)) +
       geom_line(color = "blue") + geom_point(color = "red") +
       labs(title = "Accident Trends Over Time", x = "Date", y = "Total Accidents") +
       theme_minimal()
   })
-  # 🔹 **Raw Data Table**
+  
+}  
+
+  # 🔹 **Trend & Time Analysis**
+  output$Trend <- renderPlot({
+    data <- filteredData() %>% count(Date = as.Date(Date.and.Time))
+    
+    ggplot(data, aes(x = Date, y = n)) +
+      geom_line(color = "blue") + geom_point(color = "red") +
+      labs(title = "Accident Trends Over Time", x = "Year", y = "Total Accidents") +
+      theme_minimal()
+    
+  }   
+)
+  #**Raw Data Table**
+    filteredDataTab5 <- reactive({
+      accidents %>%
+        filter(Date.and.Time >= input$dateRangeTab5[1] & Date.and.Time <= input$dateRangeTab5[2],
+               (input$weatherTab5 == "All" | Weather.Description == input$weatherTab5),
+               (input$illuminationTab5 == "All" | Illumination.Description == input$illuminationTab5),
+               Hour >= input$timeOfDayTab5[1] & Hour <= input$timeOfDayTab5[2])
+  })
   output$accidentDataTable <- renderDT({
-    datatable(filteredData(), options = list(pageLength = 10, autoWidth = TRUE))
+    datatable(filteredDataTab5(), options = list(pageLength = 20, autoWidth = TRUE))
   })
   
-  output$downloadData <- downloadHandler(
+  output$downloadDataTab5 <- downloadHandler(
     filename = function() { paste0("filtered_accidents_", Sys.Date(), ".csv") },
-    content = function(file) { write.csv(filteredData(), file, row.names = FALSE) }
-  )
-}
+    content = function(file) { write.csv(filteredDataTab5(), file, row.names = FALSE) }
+    )
+
