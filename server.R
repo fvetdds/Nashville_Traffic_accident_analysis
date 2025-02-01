@@ -7,8 +7,9 @@ function(input, output, session) {
       filter(Date.and.Time >= input$dateRange[1] & Date.and.Time <= input$dateRange[2],
              (input$weather == "All" | Weather.Description == input$weather),
              (input$illumination == "All" | Illumination.Description == input$illumination),
-    Hour >= input$timeOfDay[1] & Hour <= input$timeOfDay[2])
+              Hour >= input$timeOfDay[1] & Hour <= input$timeOfDay[2])
     })
+
   
   # 🔹 **Interactive Crash Map**
   output$accidentMap <- renderLeaflet({
@@ -43,132 +44,41 @@ function(input, output, session) {
       addLegend("bottomright", colors = c("gray", "red"), labels = c("No Fatalities", "With Fatalities"), values = filteredData$Fatality_category, title = "Fatalities in Accident", opacity = 1)
   })
   
-  # 🔹 **Accident Statistical Data (Multiple Plots)**
-  output$accidentStatsChart <- renderPlot({
-    data <- filteredData()
-    stats <- list(
-      ggplot(data %>% count(Year), aes(Year, n)) +
-        geom_bar(stat = "identity", fill = "royalblue") +
-        labs(title = "Total Accidents per Year", x = "Year", y = "Total Accidents") + theme_minimal(),
-      
-      ggplot(data %>% count(DayType), aes(DayType, n, fill = DayType)) +
-        geom_bar(stat = "identity") +
-        labs(title = "Weekday vs. Weekend Accidents", x = "Day Type", y = "Total Accidents") + theme_minimal(),
-      
-      ggplot(data %>% count(Weekday) %>% top_n(5, n), aes(reorder(Weekday, -n), n)) +
-        geom_bar(stat = "identity", fill = "purple") +
-        labs(title = "Busiest Days for Accidents", x = "Weekday", y = "Total Accidents") + theme_minimal(),
-      
-      ggplot(data %>% count(Hour) %>% top_n(5, n), aes(Hour, n)) +
-        geom_bar(stat = "identity", fill = "red") +
-        labs(title = "Busiest Hours for Accidents", x = "Hour", y = "Total Accidents") + theme_minimal(),
-      
-      ggplot(data %>% count(Zip.Code) %>% top_n(5, n), aes(reorder(as.factor(Zip.Code), -n), n)) +
-        geom_bar(stat = "identity", fill = "brown") +
-        labs(title = "Top Zip Codes with Most Accidents", x = "Zip Code", y = "Total Accidents") + theme_minimal()
-    )
-    grid.arrange(grobs = stats, ncol = 2)
-  })
+  # **Tab2 Accident Statistical Data
   
-  # 🔹 **Accident Probability Logistic Regression**
   
-  filteredDataTab3 <- reactive({
-    accidents %>%
-      filter((input$weather == "All" | Weather == input$weather),
-             (input$illumination == "All" | Illumination == input$illumination),
-             Hour >= input$timeOfDay[1] & Hour <= input$timeOfDay[2])
-  })
   
-  # 🔹 **Probability of Each Weather Condition Causing an Accident**
-  output$weatherImpact <- renderPlot({
-    if (input$riskFactorTab3 == "Weather") {
-      data <- filteredDataTab3()
-      model <- glm(Accident ~ Weather, data = data, family = binomial)
-      
-      probabilities <- model %>%
-        tidy() %>%
-        filter(term != "(Intercept)") %>%
-        mutate(
-          Weather = sub("Weather", "", term),
-          Probability = plogis(estimate)
-        )
-      
-      ggplot(probabilities, aes(x = reorder(Weather, Probability), y = Probability, fill = Probability)) +
-        geom_bar(stat = "identity") +
-        coord_flip() +
-        labs(title = "Probability of an Accident by Weather Condition",
-             x = "Weather Condition", y = "Probability of Accident") +
-        theme_minimal()
-    }
-  })
+  # **Tab 3: Understanding Crash Risks
   
-  # 🔹 **Probability of Illumination Condition Causing an Accident**
-  output$illuminationImpact <- renderPlot({
-    if (input$riskFactorTab3 == "Illumination") {
-      data <- filteredDataTab3()
-      model <- glm(Accident ~ Illumination, data = data, family = binomial)
-      
-      probabilities <- model %>%
-        tidy() %>%
-        filter(term != "(Intercept)") %>%
-        mutate(
-          Illumination = sub("Illumination", "", term),
-          Probability = plogis(estimate)
-        )
-      
-      ggplot(probabilities, aes(x = reorder(Illumination, Probability), y = Probability, fill = Probability)) +
-        geom_bar(stat = "identity") +
-        coord_flip() +
-        labs(title = "Probability of an Accident by Illumination Condition",
-             x = "Illumination Condition", y = "Probability of Accident") +
-        theme_minimal()
-    }
-  })
-  
-  # 🔹 **Probability of Hourly Accident Occurrence**
-  output$HourImpact <- renderPlot({
-    if (input$riskFactorTab3 == "Hour") {
-      data <- filteredDataTab3()
-      model <- glm(Accident ~ Hour, data = data, family = binomial)
-      
-      pred_data <- data %>%
-        group_by(Hour) %>%
-        summarize(Accident_Prob = mean(predict(model, newdata = ., type = "response")), .groups = "drop")
-      
-      ggplot(pred_data, aes(x = Hour, y = Accident_Prob)) +
-        geom_line(color = "red", size = 1) +
-        geom_point(color = "blue") +
-        labs(title = "Predicted Probability of an Accident by Hour",
-             x = "Time of Day (Hour)", y = "Probability of an Accident") +
-        theme_minimal()
-    }
-  })
-  
-  # 🔹 **Trend & Time Analysis**
-  output$Trend <- renderPlot({
-    data <- filteredDataTab3() %>%
-      count(Date = as.Date(Date.and.Time))
-    
-    ggplot(data, aes(x = Date, y = n)) +
-      geom_line(color = "blue") + geom_point(color = "red") +
-      labs(title = "Accident Trends Over Time", x = "Date", y = "Total Accidents") +
-      theme_minimal()
-  })
-  
-}  
 
-  # 🔹 **Trend & Time Analysis**
-  output$Trend <- renderPlot({
-    data <- filteredData() %>% count(Date = as.Date(Date.and.Time))
-    
-    ggplot(data, aes(x = Date, y = n)) +
-      geom_line(color = "blue") + geom_point(color = "red") +
-      labs(title = "Accident Trends Over Time", x = "Year", y = "Total Accidents") +
-      theme_minimal()
-    
-  }   
-)
-  #**Raw Data Table**
+  # **Tab 4 Time analysis**
+  output$selectedtime <- renderPlot({
+    if(input$timeSortTab4 == "Monthly Trend") {
+      ggplot(accidents, aes(x = Month)) +
+        geom_bar(fill = "navyblue") +
+        labs(title = "Total Accidents per Month", x = "Month", y = "Number of Accidents") +
+        theme_minimal() +
+        theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14, angle = 45, hjust = 1), axis.text.y = element_text(size = 14))
+    } else if (input$timeSortTab4 == "Day of Week Trend") {
+      ggplot(accidents, aes(x = Weekday)) +
+        geom_bar(fill = "darkred") +
+        labs(title = "Total Accidents per Day of Week", x = "Day of Week", y = "Number of Accidents") +
+        theme_minimal() +
+        theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14), axis.text.y = element_text(size = 14))
+    } else if (input$timeSortTab4 == "Hourly Trend") {
+      ggplot(accidents, aes(x = Hour)) +
+        geom_bar(fill = "darkgreen") +
+        labs(title = "Total Accidents per Hour") +
+        scale_x_discrete(name = "Time of Day", labels = c("12 AM", "1 AM", "2 AM", "3 AM", "4 AM", "5 AM", "6 AM", "7 AM", "8 AM", "9 AM", "10 AM", "11 AM",
+                                                          "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM", "9 PM", "10 PM", "11 PM")) +
+        scale_y_continuous(name = "Number of Accidents") +
+        theme_minimal() +
+        theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 12), xis.text.y = element_text(size = 14))
+    }  
+  })
+  
+  
+  # ** Tab 5 Raw Data Table**
     filteredDataTab5 <- reactive({
       accidents %>%
         filter(Date.and.Time >= input$dateRangeTab5[1] & Date.and.Time <= input$dateRangeTab5[2],
@@ -176,12 +86,14 @@ function(input, output, session) {
                (input$illuminationTab5 == "All" | Illumination.Description == input$illuminationTab5),
                Hour >= input$timeOfDayTab5[1] & Hour <= input$timeOfDayTab5[2])
   })
-  output$accidentDataTable <- renderDT({
-    datatable(filteredDataTab5(), options = list(pageLength = 20, autoWidth = TRUE))
-  })
+   output$accidentDataTable <- renderDT({
+    datatable(filteredDataTab5(), 
+              options = list(pageLength = 10, autoWidth = TRUE))
+  })         
+
+
   
   output$downloadDataTab5 <- downloadHandler(
-    filename = function() { paste0("filtered_accidents_", Sys.Date(), ".csv") },
-    content = function(file) { write.csv(filteredDataTab5(), file, row.names = FALSE) }
-    )
-
+    filename = function() { paste0("filtered_Nashville_accidents_", Sys.Date(), ".csv") },
+    content = function(file) { write.csv(filteredDataTab5(), file, row.names = FALSE) })
+}

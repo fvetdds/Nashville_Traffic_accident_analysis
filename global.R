@@ -22,10 +22,16 @@ accidents <- accidents %>%
     Hit.and.Run = as.logical(Hit.and.Run),
     Date.and.Time = as.POSIXct(Date.and.Time, format="%m/%d/%Y %H:%M"),
     Year = format(Date.and.Time, "%Y"),
-    Hour = as.integer(format(Date.and.Time, "%H")),
-    Weekday = weekdays(Date.and.Time),
+    Month = factor(format(Date.and.Time, "%B"), levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")),
+    HourAM = format(Date.and.Time, "%I %p"),
+    Hour = format(Date.and.Time, "%H"),
+    Weekday = factor(weekdays(Date.and.Time), levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
     DayType = ifelse(Weekday %in% c("Saturday", "Sunday"), "Weekend", "Weekday"),
     Zip.Code = as.character(Zip.Code),
     Accident = ifelse(Number.of.Injuries>0, 1, 0)
-      )
-accidents$Fatality_category <- ifelse(accidents$Number.of.Fatalities == 0, "No Fatalities", ">1 Fatalities")
+      ) %>%
+  filter(!is.na(Month) & !is.na(Weekday) & !is.na(Hour)) 
+
+accidents <- accidents %>%
+  mutate (Fatality_category = ifelse(Number.of.Fatalities == 0, "No Fatalities", "With Fatalities"))
+          
