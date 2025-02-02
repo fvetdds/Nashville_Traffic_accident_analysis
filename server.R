@@ -11,7 +11,7 @@ function(input, output, session) {
     })
 
   
-  # 🔹 **Interactive Crash Map**
+  # **tab 1 Interactive Crash Map**
   output$accidentMap <- renderLeaflet({
     leaflet() %>% 
       addTiles() %>%
@@ -45,27 +45,86 @@ function(input, output, session) {
   })
   
   # **Tab2 Accident Statistical Data
+  output$statChart <- renderPlot({
+    if(input$statChartTab2 == "Top 15 Zip codes for accidents") { 
+      top_zipcodes <- accidents %>%
+        count(Zip.Code, name = "AccidentCount") %>%
+        arrange(desc(AccidentCount)) %>%
+        head(15) 
+       c1<- ggplot(top_zipcodes, aes(x = fct_reorder(Zip.Code, AccidentCount), y = AccidentCount)) +
+        geom_bar(stat = "identity", fill = "navyblue") +
+        coord_flip()+
+        labs(title = "Top 15 Zip codes for Accidents", x = "Zip code", y = "Number of Accidents") +
+        theme_minimal() +
+        theme(plot.title =element_text(size = 24),  
+              axis.title.x = element_text(size = 16, margin = margin(t = 20)),
+              axis.title.y = element_text(size = 18), 
+              axis.text.x = element_text(size = 14), 
+              axis.text.y = element_text(size = 14))
+    Sortedacccident <- accidents %>%
+      filter(Zip.Code == "37013") %>%
+      mutate(Year = as.integer(Year))
+      c2 <- ggplot(Sortedacccident, aes(x = Year)) +
+      geom_bar(stat ="count", fill = "darkred") +
+      scale_x_continuous(name = "Year", breaks = seq(min(Sortedacccident$Year, na.rm = TRUE),
+                                                     max(Sortedacccident$Year, na.rm = TRUE),
+                                                     by = 1)) +
+      scale_y_continuous(name = "Number of Accidents") +
+      labs(title = "Total Accidents by Year in Zip Code 37013") +
+      theme_minimal() +
+      theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14, hjust = 1), axis.text.y = element_text(size = 14))
+    return(grid.arrange(c1, c2, ncol = 1, heights = c(2.0, 1.8)))
+      
+    } else if (input$statChartTab2 == "How Often Do Traffic Accidents Lead to Injuries?") {
+      Injury_count <- accidents %>%
+        count(Accident, name = "count") %>%
+        mutate(Proportion = count/sum(count) *100) 
+      ggplot(Injury_count, aes(x = "", y = count, fill = Accident)) +
+        geom_bar(stat = "identity", width = 1) +  
+        coord_polar(theta = "y") +  
+        labs(title = "Proportion of Accidents with and without Injuries") +
+        theme_void() +  
+        geom_text(aes(label = paste0(round(Proportion, 1), "%")), 
+                  position = position_stack(vjust = 0.5), 
+                  size = 6, color = "black") +
+        theme(
+          plot.title = element_text(size = 28, hjust = 0.5),
+          legend.text = element_text(size = 20),  # Increase legend text size
+          legend.title = element_text(size = 20)  # Increase legend title size
+        ) +
+          scale_fill_manual(values = c("Injuries" = "red", "No Injuries" = "gray"),
+                          labels = c("Injuries" = "With Injuries", "No Injuries" = "No Injuries")) 
+        
+    }
+    })
   
-  
-  
-  # **Tab 3: Understanding Crash Risks
   
 
-  # **Tab 4 Time analysis**
+  # **Tab 3 Time analysis**
+  
   output$selectedtime <- renderPlot({
-    if(input$timeSortTab4 == "Monthly Trend") {
-      ggplot(accidents, aes(x = Month)) +
+    if(input$timeSortTab3 == "Monthly Trend") {
+      p1<- ggplot(accidents, aes(x = Month)) +
         geom_bar(fill = "navyblue") +
         labs(title = "Total Accidents per Month", x = "Month", y = "Number of Accidents") +
         theme_minimal() +
-        theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14, angle = 45, hjust = 1), axis.text.y = element_text(size = 14))
-    } else if (input$timeSortTab4 == "Day of Week Trend") {
-      ggplot(accidents, aes(x = Weekday)) +
+        theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14, angle = 45, hjust = 1), axis.text.y = element_text(size = 14))
+ 
+           
+      p2 <- ggplot(accidents, aes(x = Season)) +
         geom_bar(fill = "darkred") +
+        labs(title = "Seasonal Contribution to Traffic Accidents", x = "Season", y = "Total Accidents") +
+        theme_minimal() +
+        theme(plot.title = element_text(size = 24, margin = margin(b = 20)), axis.title.x = element_text(size = 18, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14), axis.text.y = element_text(size = 14))
+      
+      grid.arrange(p1, p2, ncol = 1, heights = c(2.0, 1.8))
+    } else if (input$timeSortTab3 == "Day of Week Trend") {
+      ggplot(accidents, aes(x = Weekday)) +
+        geom_bar(fill = "blue") +
         labs(title = "Total Accidents per Day of Week", x = "Day of Week", y = "Number of Accidents") +
         theme_minimal() +
-        theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14), axis.text.y = element_text(size = 14))
-    } else if (input$timeSortTab4 == "Hourly Trend") {
+        theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14), axis.text.y = element_text(size = 14))
+    } else if (input$timeSortTab3 == "Hourly Trend") {
       ggplot(accidents, aes(x = Hour)) +
         geom_bar(fill = "darkgreen") +
         labs(title = "Total Accidents per Hour") +
@@ -73,21 +132,21 @@ function(input, output, session) {
                                                           "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM", "9 PM", "10 PM", "11 PM")) +
         scale_y_continuous(name = "Number of Accidents") +
         theme_minimal() +
-        theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 12), xis.text.y = element_text(size = 14))
+        theme(plot.title =element_text(size = 24, margin = margin(b = 60)), axis.title.x = element_text(size = 16, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 12), axis.text.y = element_text(size = 14))
     }  
-  })
+  }) 
   
   
-  # ** Tab 5 Raw Data Table**
-    filteredDataTab5 <- reactive({
+  # ** Tab 4 Raw Data Table** 
+    filteredDataTab4 <- reactive({
       accidents %>%
-        filter(Date.and.Time >= input$dateRangeTab5[1] & Date.and.Time <= input$dateRangeTab5[2],
-               (input$weatherTab5 == "All" | Weather.Description == input$weatherTab5),
-               (input$illuminationTab5 == "All" | Illumination.Description == input$illuminationTab5),
-               Hour >= input$timeOfDayTab5[1] & Hour <= input$timeOfDayTab5[2])
+        filter(Date.and.Time >= input$dateRangeTab4[1] & Date.and.Time <= input$dateRangeTab4[2],
+               (input$weatherTab4 == "All" | Weather.Description == input$weatherTab4),
+               (input$illuminationTab4 == "All" | Illumination.Description == input$illuminationTab4),
+               Hour >= input$timeOfDayTab4[1] & Hour <= input$timeOfDayTab4[2])
   })
    output$accidentDataTable <- renderDT({
-    datatable(filteredDataTab5(), 
+    datatable(filteredDataTab4(), 
               options = list(pageLength = 10, autoWidth = TRUE))
   })         
 
