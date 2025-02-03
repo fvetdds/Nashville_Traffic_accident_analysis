@@ -52,7 +52,7 @@ function(input, output, session) {
         arrange(desc(AccidentCount)) %>%
         head(15) 
        c1<- ggplot(top_zipcodes, aes(x = fct_reorder(Zip.Code, AccidentCount), y = AccidentCount)) +
-        geom_bar(stat = "identity", fill = "blue") +
+        geom_bar(stat = "identity", fill = "#6b3372") +
         coord_flip()+
         labs(title = "Top 15 Zip codes for Accidents", x = "Zip code", y = "Number of Accidents") +
         theme_minimal() +
@@ -65,7 +65,7 @@ function(input, output, session) {
       filter(Zip.Code == "37013") %>%
       mutate(Year = as.integer(Year))
       c2 <- ggplot(Sortedacccident, aes(x = Year)) +
-      geom_bar(stat ="count", fill = "darkred") +
+      geom_bar(stat ="count", fill = "#44b2b3") +
       scale_x_continuous(name = "Year", breaks = seq(min(Sortedacccident$Year, na.rm = TRUE),
                                                      max(Sortedacccident$Year, na.rm = TRUE),
                                                      by = 1)) +
@@ -114,7 +114,7 @@ function(input, output, session) {
           legend.text = element_text(size = 20),
           legend.title = element_text(size = 20)
         ) +
-        scale_fill_manual(values = c("Y" = "darkorange", "N" = "darkgray"),
+        scale_fill_manual(values = c("Y" = "#fcb316", "N" = "darkgray"),
                           labels = c("Y" = "With Hit and Run", "N" = "No Hit and Run"))
       
       hit_area <- accidents %>%
@@ -152,14 +152,14 @@ function(input, output, session) {
   output$selectedtime <- renderPlot({
     if(input$timeSortTab3 == "Monthly Trend") {
       p1<- ggplot(accidents, aes(x = Month)) +
-        geom_bar(fill = "blue") +
+        geom_bar(fill = "#44b2b3") +
         labs(title = "Total Accidents per Month", x = "Month", y = "Number of Accidents") +
         theme_minimal() +
         theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14, angle = 45, hjust = 1), axis.text.y = element_text(size = 14))
  
            
       p2 <- ggplot(accidents, aes(x = Season)) +
-        geom_bar(fill = "darkred") +
+        geom_bar(fill = "#eb3379") +
         labs(title = "Seasonal Contribution to Traffic Accidents", x = "Season", y = "Total Accidents") +
         theme_minimal() +
         theme(plot.title = element_text(size = 24, margin = margin(b = 20)), axis.title.x = element_text(size = 18, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14), axis.text.y = element_text(size = 14))

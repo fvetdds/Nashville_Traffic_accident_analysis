@@ -16,8 +16,8 @@ library(gridExtra)
 
 
 
-accidents <- read.csv("../data/Nashville_traffic_accident.csv")
 
+accidents <- read.csv("www/Nashville_traffic_accident.csv")
 
 
 accidents <- accidents %>%
