@@ -2,7 +2,8 @@
 
 library(shiny)
 function(input, output, session) { 
-  filteredData <- reactive({
+  filteredData <- eventReactive(input$searchBT, {
+    req(input$dateRange, input$weather, input$illumination, input$timeOfDay)
     accidents %>% 
       filter(Date.and.Time >= input$dateRange[1] & Date.and.Time <= input$dateRange[2],
              (input$weather == "All" | Weather.Description == input$weather),
@@ -12,13 +13,15 @@ function(input, output, session) {
 
   
   # **tab 1 Interactive Crash Map**
+  observeEvent(input$searchBT, {
   output$accidentMap <- renderLeaflet({
     leaflet() %>% 
       addTiles() %>%
-      setView(lng = mean(accidents$Longitude, na.rm = TRUE), lat = mean(accidents$Latitude, na.rm = TRUE), zoom = 10)
-  })
+      setView(lng = mean(accidents$Longitude, na.rm = TRUE), lat = mean(accidents$Latitude, na.rm = TRUE), zoom = 10
+              )
+})
   
-  observe({
+    
     data <- filteredData()
     pal <- colorFactor(
       palette = c("gray", "red"),
@@ -41,8 +44,9 @@ function(input, output, session) {
       addControl(paste0("<h4 style='color: black; background: white; padding: 5px; border-radius: 5px;'>",
                         "Total Accidents: <b>", format(nrow(data), big.mark = ","), "</b></h4>"),
                  position = "topright") %>%
-      addLegend("bottomright", colors = c("gray", "red"), labels = c("No Fatalities", "With Fatalities"), values = filteredData$Fatality_category, title = "Fatalities in Accident", opacity = 1)
+      addLegend("bottomright", colors = c("gray", "red"), labels = c("No Fatalities", "With Fatalities"), values = data$Fatality_category, title = "Fatalities in Accident", opacity = 1)
   })
+
   
   # **Tab2 Accident Statistical Data
   output$statChart <- renderPlot({
@@ -143,7 +147,33 @@ function(input, output, session) {
       img_path <- "www/COLLISION TYPE.png"
       img_grob <- rasterGrob(png::readPNG(img_path), interpolate = TRUE)
       
-      return(grid.arrange(p1, img_grob, ncol = 2, heights = c(2.0, 2.0)))
+      return(grid.arrange(p1, img_grob, ncol = 1, heights = c(2.0, 2.0)))
+    
+    } else if (input$statChartTab2 == "When Do Most Accidents Happen? A Look at Weather Trends") {
+      ggplot(accidents, aes(x = Weather.Description)) +
+        geom_bar(fill = "darkgreen") +
+        labs(title = "The Link Between Weather Condition and Accidents", x = "Weather Conditions", y = "Number of Accidents") +
+        scale_y_continuous(labels = scales::comma,
+                           limits = c(0, 150000)) +
+        theme_minimal() +
+        theme(plot.title = element_text(size = 20), 
+              axis.title.x =  element_text(size =16), 
+              axis.title.y = element_text(size = 16), 
+              axis.text.x = element_text(size =12, angle =45, hjust = 1.0), 
+              axis.text.y = element_text(size =12))
+    
+    } else if (input$statChartTab2 == "Brighter Roads, Safer Drives? Analyzing Illumination and Traffic Accidents") {
+      ggplot(accidents, aes(x = Illumination.Description)) +
+        geom_bar(fill = "#44b2b3") +
+        labs(title = "The Impact of Illumination on Accidents", x = "Illumination Conditions", y = "Number of Accidents") +
+        scale_y_continuous(labels = scales::comma,
+                           limits = c(0, 150000)) +
+        theme_minimal() +
+        theme(plot.title = element_text(size = 20), 
+              axis.title.x =  element_text(size =16), 
+              axis.title.y = element_text(size = 16), 
+              axis.text.x = element_text(size =12, angle =45, hjust = 1.0), 
+              axis.text.y = element_text(size =12))
     }
   })
   
@@ -155,7 +185,7 @@ function(input, output, session) {
         geom_bar(fill = "#44b2b3") +
         labs(title = "Total Accidents per Month", x = "Month", y = "Number of Accidents") +
         theme_minimal() +
-        theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14, angle = 45, hjust = 1), axis.text.y = element_text(size = 14))
+        theme(plot.title =element_text(size = 26), axis.title.x = element_text(size = 20, margin = margin(t = 10)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14, angle = 45, hjust = 1, margin = margin(t = 10)), axis.text.y = element_text(size = 14))
  
            
       p2 <- ggplot(accidents, aes(x = Season)) +
@@ -199,7 +229,8 @@ function(input, output, session) {
 
 
   
-  output$downloadDataTab5 <- downloadHandler(
+  output$downloadDataTab4 <- downloadHandler(
     filename = function() { paste0("filtered_Nashville_accidents_", Sys.Date(), ".csv") },
-    content = function(file) { write.csv(filteredDataTab5(), file, row.names = FALSE) })
+    content = function(file) { write.csv(filteredDataTab4(), file, row.names = FALSE) }
+    )
 }

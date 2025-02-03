@@ -41,7 +41,9 @@ fluidPage(
                             max = 23,
                             value = c(0, 23),
                             step = 1
-                          )
+                          ),
+                        
+                        actionButton("searchBT", "Search Accidents")
                         ),
                         # leafletOutput will create an interactive map to visualizes accidents
                         mainPanel(
@@ -60,7 +62,9 @@ fluidPage(
                             "Top 15 Zip codes for accidents",  
                             "How Often Do Traffic Accidents Lead to Injuries?", 
                             "Hit-and-Run Cases: Pattern and Impact", 
-                            "Breakdown of Collision Types in Traffic Accidents"
+                            "Breakdown of Collision Types in Traffic Accidents",
+                            "When Do Most Accidents Happen? A Look at Weather Trends",
+                            "Brighter Roads, Safer Drives? Analyzing Illumination and Traffic Accidents"
                           )),
                             uiOutput("dynamicstatTab2")
                          ),

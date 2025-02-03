@@ -12,12 +12,13 @@ library(rsconnect)
 library(broom) 
 library(grid)
 library(gridExtra)
+library(data.table)
 
 
 
 
 
-accidents <- read.csv("www/Nashville_traffic_accident.csv")
+accidents <- readRDS("www/accidents.rds")
 
 
 accidents <- accidents %>%
