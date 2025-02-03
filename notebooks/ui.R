@@ -14,9 +14,10 @@ fluidPage(
   # create a navigation bar with 4 tabs and  users can use 4 filters for 1.date range, 2.weather, 3.illumination type and 4.time of the day
   navbarPage("Music City CrashView Application",
              tabPanel("Interactive Crash Map",
-                      sidebarLayout(
-                        sidebarPanel(
-                          dateRangeInput( 
+                fluidRow(
+                  column(3,
+                      wellPanel(
+                        dateRangeInput( 
                             "dateRange",
                             "Select Date Range:",
                             start = min(accidents$Date.and.Time, na.rm = TRUE),
@@ -44,9 +45,10 @@ fluidPage(
                           ),
                         
                         actionButton("searchBT", "Search Accidents")
+                         )
                         ),
                         # leafletOutput will create an interactive map to visualizes accidents
-                        mainPanel(
+                        column(9,
                           leafletOutput("accidentMap", height = "700px")
                         )
                       )
@@ -56,8 +58,9 @@ fluidPage(
              
               #Tab 2: Accident Statistical Data
              tabPanel("Accident Statistical Data",
-                      sidebarLayout(
-                        sidebarPanel(
+                      fluidRow(
+                        column(3,
+                               wellPanel(
                          selectInput("statChartTab2", "Select Chart:", choices = c(
                             "Top 15 Zip codes for accidents",  
                             "How Often Do Traffic Accidents Lead to Injuries?", 
@@ -67,10 +70,11 @@ fluidPage(
                             "Brighter Roads, Safer Drives? Analyzing Illumination and Traffic Accidents"
                           )),
                             uiOutput("dynamicstatTab2")
+                               )
                          ),
                                                   
-                        mainPanel(
-                          plotOutput("statChart", height = "800px"),
+                        column(9,
+                          plotOutput("statChart", width = "100%", height = "700px"),
                           
                         )
                       )    
@@ -80,29 +84,36 @@ fluidPage(
              
              # Tab 3: Time-based accident Analysis
              tabPanel("Time-Based Accident Analysis",
-                      sidebarLayout(
-                        sidebarPanel(
+                      fluidRow(
+                        column(3,  
+                               wellPanel(
+                        
                           radioButtons("timeSortTab3", "Select Trend Type:", choices = c("Monthly Trend", "Day of Week Trend", "Hourly Trend")),
                           uiOutput("dynamic_timeSort")
+                          )
                         ),
-                        mainPanel(
-                          plotOutput("selectedtime", height = "800px"))
+                        column(9,
+                          plotOutput("selectedtime",width = "100%", height = "700px")
+                          )
                       )
              ),
                       
              
              # Tab 4: Raw Data Table
              tabPanel("Raw Data Table",
-                      sidebarLayout(
-                        sidebarPanel(
+                      fluidRow(
+                        column(3,  
+                               wellPanel(
                           dateRangeInput("dateRangeTab4", "Date Range:", start = min(accidents$Date.and.Time, na.rm = TRUE),
                                          end = max(accidents$Date.and.Time, na.rm = TRUE)),
                           selectInput("weatherTab4", "Weather Condition:", choices = c("All", unique(accidents$Weather.Description)), selected = "All"),
                           selectInput("illuminationTab4", "Illumination Condition:", choices = c("All", unique(accidents$Illumination.Description)), selected = "All"),
                           sliderInput("timeOfDayTab4","Time of Day (Hour):", min = 0, max = 23, value = c(0, 23), step = 1),
                           downloadButton("downloadDataTab4", "Download Data")
+                             )
                         ),
-                        mainPanel(DTOutput("accidentDataTable")
+                        column(9,
+                          DTOutput("accidentDataTable")
                         )
                       )
              )

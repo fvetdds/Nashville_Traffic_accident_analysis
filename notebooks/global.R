@@ -18,6 +18,7 @@ library(data.table)
 
 
 
+
 accidents <- readRDS("www/accidents.rds")
 
 
