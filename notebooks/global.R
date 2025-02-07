@@ -1,6 +1,6 @@
 
 library(shiny)
-library(tidyverse)
+library(tidyverse) 
 library(glue)
 library(sf) 
 library(lme4)
@@ -39,9 +39,8 @@ accidents <- accidents %>%
     DayType = ifelse(Weekday %in% c("Saturday", "Sunday"), "Weekend", "Weekday"),
     Zip.Code = as.character(Zip.Code),
     Accident = ifelse(Number.of.Injuries>0, "Injuries", "No Injuries")
-      ) %>%
+  ) %>%
   filter(!is.na(Month) & !is.na(Weekday) & !is.na(Hour)) 
 
 accidents <- accidents %>%
   mutate (Fatality_category = ifelse(Number.of.Fatalities == 0, "No Fatalities", "With Fatalities"))
-          
