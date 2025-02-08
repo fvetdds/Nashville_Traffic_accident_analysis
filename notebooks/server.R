@@ -8,8 +8,7 @@ function(input, output, session) {
              (input$illumination == "All" | Illumination.Description == input$illumination),
              Hour >= input$timeOfDay[1] & Hour <= input$timeOfDay[2])
   })
-  
-  
+ 
   # **tab 1 Interactive Crash Map**
 
     output$accidentMap <- renderLeaflet({
@@ -21,42 +20,63 @@ function(input, output, session) {
     
 observeEvent(input$searchBT, {     
     data <- filteredData() 
-    req(nrow(data) > 0)
+    req(nrow(data) > 0) 
     pal <- colorFactor(
       palette = c("deepskyblue4", "brown2"),
-      levels = c("No Fatalities", "With Fatalities")
+      levels = c("No Fatalities", "With Fatalities") 
     )
-    
+    fatalPinIcon <- makeIcon(
+      iconUrl = "https://openclipart.org/download/140725/marker-red-optimized.svg",
+      iconWidth = 30,
+      iconHeight = 40
+    )
     leafletProxy("accidentMap", data = data) %>%
       clearMarkers() %>% 
       clearControls() %>%
-      addCircleMarkers(lng = ~Longitude, 
+      addCircleMarkers(
+         data = subset(data, Fatality_category == "No Fatalities"),              
+         lng = ~Longitude, 
                        lat = ~Latitude, 
                        color = "deepskyblue4", 
                        fillColor = ~pal(Fatality_category),
-                       radius = ~ifelse(Number.of.Injuries > 0, 1 + (Number.of.Injuries * 0.5), 1),
+                       radius = ~ifelse(Number.of.Injuries > 0, 1 + (Number.of.Injuries * 1.5), 1),
                        fillOpacity = 0.7, stroke = TRUE, weight = 0.5, group = "Filtered",
                        popup = ~paste("<b>Date:</b>", Date.and.Time, "<br><b>Injuries:</b>", Number.of.Injuries,
                                       "<br><b>Fatalities:</b>", Number.of.Fatalities, "<br><b>Collision Type:</b>",
                                       Collision.Type.Description, "<br><b>Hit&Run:</b>", Hit.and.Run,
-                                      "<br><b>Property Damage:</b>", Property.Damage)) %>%
+                                      "<br><b>Property Damage:</b>", Property.Damage)
+         )%>%
+      addMarkers(
+        data = subset(data, Fatality_category == "With Fatalities"),
+        lng = ~Longitude, 
+        lat = ~Latitude, 
+        icon = fatalPinIcon,
+        popup = ~paste("<b>Date:</b>", Date.and.Time, "<br><b>Injuries:</b>", Number.of.Injuries,
+                       "<br><b>Fatalities:</b>", Number.of.Fatalities, "<br><b>Collision Type:</b>", Collision.Type.Description, "<br><b>Hit&Run:</b>", Hit.and.Run,
+                       "<br><b>Property Damage:</b>", Property.Damage),
+        group = "Fatal Accidents"
+      ) %>%
       addControl(paste0("<h4 style='color: black; background: white; padding: 5px; border-radius: 5px;'>",
                         "Total Accidents: <b>", format(nrow(data), big.mark = ","), "</b></h4>"),
                  position = "topright") %>%
       
       addLegend("bottomright", pal =pal, values = data$Fatality_category, title = "Fatalities in Accident", opacity = 5)
-    
-    
-    })
+   })
 
   
   # **Tab2 Accident Statistical Data
+  output$pdfViewer <- renderUI({
+  if (input$statChartTab2 == "Top 15 Zip codes for accidents") {
+    tags$iframe(style = "height:600px; width:100%", src = "ZipCodes.pdf")
+  }
+  })
   output$statChart <- renderPlot({
     if(input$statChartTab2 == "Top 15 Zip codes for accidents") { 
       top_zipcodes <- accidents %>%
         count(Zip.Code, name = "AccidentCount") %>%
         arrange(desc(AccidentCount)) %>%
         head(15) 
+      
       c1<- ggplot(top_zipcodes, aes(x = fct_reorder(Zip.Code, AccidentCount), y = AccidentCount)) +
         geom_bar(stat = "identity", fill = "#6b3372") +
         coord_flip()+
@@ -79,6 +99,8 @@ observeEvent(input$searchBT, {
         labs(title = "Total Accidents by Year in Zip Code 37013") +
         theme_minimal() +
         theme(plot.title =element_text(size = 24), axis.title.x = element_text(size = 18, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 14, hjust = 1), axis.text.y = element_text(size = 14))
+      
+      
       return(grid.arrange(c1, c2, ncol = 1, heights = c(2.0, 1.8)))
       
     } else if (input$statChartTab2 == "How Often Do Traffic Accidents Lead to Injuries?") {
@@ -140,11 +162,15 @@ observeEvent(input$searchBT, {
       grid.arrange(c1, c2, ncol = 1, heights = c(2.0, 1.8))
       
     } else if (input$statChartTab2 == "Breakdown of Collision Types in Traffic Accidents") {
-      p1 <- ggplot(accidents, aes(x = Collision.Type.Description)) +
-        geom_bar(fill = "blue") +
+      p1 <- ggplot(accidents %>%
+                     count(Collision.Type.Description, name = "AccidentCount") %>%
+                     arrange(desc(AccidentCount)),
+                     aes(x = fct_reorder(Collision.Type.Description, AccidentCount), y = AccidentCount)) +
+        geom_bar(stat = "identity", fill = "blue") +
+        coord_flip()+
         labs(title = "Distribution of Collision Types in Traffic Accidents", x = "Collision Type", y = "Number of Accidents") +
         theme_minimal() +
-        theme(plot.title =element_text(size = 18), axis.title.x = element_text(size = 14, margin = margin(t = 10)), axis.title.y = element_text(size = 14), axis.text.x = element_text(size = 12, angle = 45, hjust = 1), axis.text.y = element_text(size = 12))
+        theme(plot.title =element_text(size = 18), axis.title.x = element_text(size = 14, margin = margin(t = 10)), axis.title.y = element_text(size = 14), axis.text.x = element_text(size = 12, hjust = 1), axis.text.y = element_text(size = 12))
       
       img_path <- "www/COLLISION TYPE.png"
       img_grob <- rasterGrob(png::readPNG(img_path), interpolate = TRUE)
@@ -152,21 +178,29 @@ observeEvent(input$searchBT, {
       return(grid.arrange(p1, img_grob, ncol = 1, heights = c(2.0, 2.0)))
       
     } else if (input$statChartTab2 == "When Do Most Accidents Happen? A Look at Weather Trends") {
-      ggplot(accidents, aes(x = Weather.Description)) +
-        geom_bar(fill = "darkgreen") +
-        labs(title = "The Link Between Weather Condition and Accidents", x = "Weather Conditions", y = "Number of Accidents") +
-        scale_y_continuous(labels = scales::comma,
-                           limits = c(0, 150000)) +
+      ggplot(accidents %>%
+               count(Weather.Description, name = "AccidentCount") %>%
+               mutate(Percentage = (AccidentCount/sum(AccidentCount))*100) %>%
+               arrange(desc(Percentage)),
+             aes(x = fct_reorder(Weather.Description, Percentage), y = Percentage)) +
+        geom_bar(stat = "identity", fill = "brown4") +
+        coord_flip()+
+        labs(title = "The Link Between Weather Condition and Accidents", x = "Weather Conditions", y = "Percentage of Accidents") +
+        scale_y_continuous() +
         theme_minimal() +
         theme(plot.title = element_text(size = 20), 
               axis.title.x =  element_text(size =16), 
               axis.title.y = element_text(size = 16), 
-              axis.text.x = element_text(size =12, angle =45, hjust = 1.0), 
+              axis.text.x = element_text(size =12, hjust = 1.0), 
               axis.text.y = element_text(size =12))
       
     } else if (input$statChartTab2 == "Brighter Roads, Safer Drives? Analyzing Illumination and Traffic Accidents") {
-      ggplot(accidents, aes(x = Illumination.Description)) +
-        geom_bar(fill = "#44b2b3") +
+      ggplot(accidents %>%
+                     count(Illumination.Description, name = "AccidentCount") %>%
+                     arrange(desc(AccidentCount)),
+                   aes(x = fct_reorder(Illumination.Description, AccidentCount), y = AccidentCount)) +
+        geom_bar(stat = "identity", fill = "deepskyblue3") +
+        coord_flip()+
         labs(title = "The Impact of Illumination on Accidents", x = "Illumination Conditions", y = "Number of Accidents") +
         scale_y_continuous(labels = scales::comma,
                            limits = c(0, 150000)) +
@@ -174,10 +208,12 @@ observeEvent(input$searchBT, {
         theme(plot.title = element_text(size = 20), 
               axis.title.x =  element_text(size =16), 
               axis.title.y = element_text(size = 16), 
-              axis.text.x = element_text(size =12, angle =45, hjust = 1.0), 
+              axis.text.x = element_text(size =12, hjust = 1.0), 
               axis.text.y = element_text(size =12))
     }
+    
   })
+ 
   
   # **Tab 3 Time analysis**
   

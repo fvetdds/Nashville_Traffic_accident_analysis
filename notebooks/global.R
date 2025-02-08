@@ -13,6 +13,7 @@ library(broom)
 library(grid)
 library(gridExtra)
 library(data.table)
+library(leaflet.extras)
 
 
 
@@ -27,13 +28,13 @@ accidents <- accidents %>%
     Property.Damage = as.logical(Property.Damage),
     Hit.and.Run = as.character(Hit.and.Run),
     Date.and.Time = as.POSIXct(Date.and.Time, format="%m/%d/%Y %H:%M"),
+  
     Year = format(Date.and.Time, "%Y"),
     Month = factor(format(Date.and.Time, "%B"), levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")),
     Season = case_when(Month %in% c("March", "April", "May") ~ "Spring",
                        Month %in% c("June", "July", "August") ~ "Summer",
                        Month %in% c("September", "October", "November") ~ "Fall",
                        Month %in% c("December", "January", "February") ~ "Winter", TRUE ~ "Unknown"),
-    HourAM = format(Date.and.Time, "%I %p"),
     Hour = format(Date.and.Time, "%H"),
     Weekday = factor(weekdays(Date.and.Time), levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
     DayType = ifelse(Weekday %in% c("Saturday", "Sunday"), "Weekend", "Weekday"),
@@ -44,3 +45,13 @@ accidents <- accidents %>%
 
 accidents <- accidents %>%
   mutate (Fatality_category = ifelse(Number.of.Fatalities == 0, "No Fatalities", "With Fatalities"))
+
+target_zipcodes <- c("37013", "37211", "37207", "37210")
+
+# Assign colors to each zip code
+zip_colors <- setNames(c("red", "blue", "green", "purple"), target_zipcodes)
+
+filtered_zip <- accidents %>%
+  filter(Zip.Code %in% target_zipcodes)
+
+  

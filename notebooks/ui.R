@@ -10,16 +10,19 @@ fluidPage(
   
   # create a navigation bar with 4 tabs and  users can use 4 filters for 1.date range, 2.weather, 3.illumination type and 4.time of the day
   navbarPage("Music City CrashView Application",
-             tabPanel("Interactive Crash Map",
-                      fluidRow(
-                        column(3,
+             tabPanel("Interactive Crash Map", 
+                      fluidRow( 
+                        column(3, 
                                wellPanel(
                                  dateRangeInput( 
                                    "dateRange",
                                    "Select Date Range:",
-                                   start = min(accidents$Date.and.Time, na.rm = TRUE),
-                                   end = max(accidents$Date.and.Time, na.rm = TRUE)
+                                   start = as.Date("2024-02-01"),
+                                   end = as.Date("2024-02-25"),
+                                   min = min(accidents$Date.and.Time, na.rm = TRUE),
+                                   max = max(accidents$Date.and.Time, na.rm = TRUE)
                                  ),
+                                   
                                  selectInput(
                                    "weather",
                                    "Weather Condition:",
@@ -44,9 +47,7 @@ fluidPage(
                                  actionButton("searchBT", "Search Accidents")
                                )
                         ),
-                        # leafletOutput will create an interactive map to visualizes accidents
-                        column(9,
-                               leafletOutput("accidentMap", height = "700px")
+                        column(9, leafletOutput("accidentMap", height = "700px")
                         )
                       )
              ),
@@ -65,14 +66,15 @@ fluidPage(
                                    "Breakdown of Collision Types in Traffic Accidents",
                                    "When Do Most Accidents Happen? A Look at Weather Trends",
                                    "Brighter Roads, Safer Drives? Analyzing Illumination and Traffic Accidents"
-                                 )),
-                                 uiOutput("dynamicstatTab2")
-                               )
-                        ),
+                                 ))
+                                 
+                               ) 
+                              
+                            ),
                         
                         column(9,
                                plotOutput("statChart", width = "100%", height = "700px"),
-                               
+                               uiOutput("pdfViewer"),
                         )
                       )    
              ),
@@ -95,7 +97,7 @@ fluidPage(
                       )
              ),
              
-             
+              
              # Tab 4: Raw Data Table
              tabPanel("Raw Data Table",
                       fluidRow(
@@ -117,3 +119,4 @@ fluidPage(
   )
   
 )
+
