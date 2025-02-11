@@ -13,7 +13,7 @@ function(input, output, session) {
             z = ~Total_Injuries,
             type = "scatter3d",
             mode = "markers",
-            marker = list(size = 5, color =~Total_Accidents, colorscale = "Viridis")
+            marker = list(size = 5, color = "blue")
     ) %>%
       layout(
         scene = list(

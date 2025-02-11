@@ -49,7 +49,7 @@ accidents <- accidents %>%
 target_zipcodes <- c("37013", "37211", "37207", "37210")
 
 # Assign colors to each zip code
-zip_colors <- setNames(c("red", "blue", "green", "purple"), target_zipcodes)
+zip_colors <- setNames(c("red", "blue", "green", "purple"), target_zipcodes) 
 
 filtered_zip <- accidents %>%
   filter(Zip.Code %in% target_zipcodes)

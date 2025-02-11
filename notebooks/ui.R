@@ -5,11 +5,11 @@ fluidPage(
       .navbar-default { background-color: #3498DB; border-color: #3498DB; }
       .navbar-default .navbar-brand, .navbar-default .navbar-nav > li > a { color: white; }
       .navbar-default .navbar-nav > .active > a { background-color: #F39C12; color: white; }
-      .btn { background-color: #17A2B8; color: white; border-radius: 5px; }
+      .btn { background-color: #17A2B8; color: white; border-radius: 5px; } 
   "))),
   div(
     class = "logo-container",
-    tags$img(src = "Nashville CrashVille logo.png", height = "200px")
+    tags$img(src = "Nashville CrashVille logo.png", height = "170px")
   ),
   # create a navigation bar with 4 tabs and  users can use 4 filters for 1.date range, 2.weather, 3.illumination type and 4.time of the day
   navbarPage(
