@@ -1,5 +1,30 @@
 library(shiny)
 function(input, output, session) { 
+  accident_summary <- reactive ({
+    accidents %>%
+    filter(Year != 2025) %>%
+    group_by(Year) %>%
+    summarise(Total_Accidents = n(), Total_Injuries = sum(Number.of.Injuries))
+  })
+  output$accident3DPlot <- renderPlotly({
+    plot_ly(accident_summary(),
+      x = ~Year,
+      y = ~Total_Accidents,
+      z = ~Total_Injuries,
+      type = "scatter3d",
+      mode = "markers",
+      marker = list(size = 5, color =~Total_Accidents, colorscale = "Viridis")
+      ) %>%
+      layout(
+        scene = list(
+          xaxis = list(title = "Year"),
+          yaxis = list(title = "Total Accident"),
+          zaxis = list(title = "Total Injuries")
+        )
+      )
+  })
+  
+  
   filteredData <- eventReactive(input$searchBT, {
     req(input$dateRange, input$weather, input$illumination, input$timeOfDay)
     accidents %>% 
@@ -179,7 +204,7 @@ observeEvent(input$searchBT, {
       
     } else if (input$statChartTab2 == "When Do Most Accidents Happen? A Look at Weather Trends") {
       ggplot(accidents %>%
-               count(Weather.Description, name = "AccidentCount") %>%
+               count(Weather.Description, name = "AccidentCount") %>% 
                mutate(Percentage = (AccidentCount/sum(AccidentCount))*100) %>%
                arrange(desc(Percentage)),
              aes(x = fct_reorder(Weather.Description, Percentage), y = Percentage)) +

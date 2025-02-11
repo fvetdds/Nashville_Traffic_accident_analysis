@@ -13,7 +13,7 @@ library(broom)
 library(grid)
 library(gridExtra)
 library(data.table)
-library(leaflet.extras)
+library(plotly)
 
 
 
@@ -23,7 +23,7 @@ library(leaflet.extras)
 accidents <- readRDS("www/accidents.rds")
 
 
-accidents <- accidents %>%
+accidents <- accidents %>% 
   mutate(
     Property.Damage = as.logical(Property.Damage),
     Hit.and.Run = as.character(Hit.and.Run),

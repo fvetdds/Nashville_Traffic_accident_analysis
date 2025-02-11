@@ -10,7 +10,15 @@ fluidPage(
   
   # create a navigation bar with 4 tabs and  users can use 4 filters for 1.date range, 2.weather, 3.illumination type and 4.time of the day
   navbarPage("Music City CrashView Application",
-             tabPanel("Interactive Crash Map", 
+   #tab1
+          tabPanel("Traffic Accidents in Nashville (2018-2024)",
+                      fluidPage(
+                        titlePanel("3D Plot of Traffic Accidents"),
+                        plotlyOutput("accident3DPlot")
+                        )
+                      ),
+   #tab 2          
+                  tabPanel("Interactive Crash Map", 
                       fluidRow( 
                         column(3, 
                                wellPanel(
@@ -54,7 +62,7 @@ fluidPage(
              
              
              
-             #Tab 2: Accident Statistical Data
+             #Tab3 : Accident Statistical Data
              tabPanel("Accident Statistical Data",
                       fluidRow(
                         column(3,
@@ -81,7 +89,7 @@ fluidPage(
              
              
              
-             # Tab 3: Time-based accident Analysis
+             # Tab4 : Time-based accident Analysis
              tabPanel("Time-Based Accident Analysis",
                       fluidRow(
                         column(3,  
@@ -98,8 +106,8 @@ fluidPage(
              ),
              
               
-             # Tab 4: Raw Data Table
-             tabPanel("Raw Data Table",
+             # Tab 5: Raw Data Table
+             tabPanel("Raw Data Table", 
                       fluidRow(
                         column(3,  
                                wellPanel(
@@ -119,4 +127,3 @@ fluidPage(
   )
   
 )
-
