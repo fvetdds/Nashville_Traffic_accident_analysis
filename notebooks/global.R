@@ -28,7 +28,7 @@ accidents <- accidents %>%
     Property.Damage = as.logical(Property.Damage),
     Hit.and.Run = as.character(Hit.and.Run),
     Date.and.Time = as.POSIXct(Date.and.Time, format="%m/%d/%Y %H:%M"),
-  
+    
     Year = format(Date.and.Time, "%Y"),
     Month = factor(format(Date.and.Time, "%B"), levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")),
     Season = case_when(Month %in% c("March", "April", "May") ~ "Spring",
@@ -54,4 +54,3 @@ zip_colors <- setNames(c("red", "blue", "green", "purple"), target_zipcodes)
 filtered_zip <- accidents %>%
   filter(Zip.Code %in% target_zipcodes)
 
-  

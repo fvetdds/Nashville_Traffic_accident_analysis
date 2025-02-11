@@ -2,19 +2,19 @@ library(shiny)
 function(input, output, session) { 
   accident_summary <- reactive ({
     accidents %>%
-    filter(Year != 2025) %>%
-    group_by(Year) %>%
-    summarise(Total_Accidents = n(), Total_Injuries = sum(Number.of.Injuries))
+      filter(Year != 2025) %>%
+      group_by(Year) %>%
+      summarise(Total_Accidents = n(), Total_Injuries = sum(Number.of.Injuries))
   })
   output$accident3DPlot <- renderPlotly({
     plot_ly(accident_summary(),
-      x = ~Year,
-      y = ~Total_Accidents,
-      z = ~Total_Injuries,
-      type = "scatter3d",
-      mode = "markers",
-      marker = list(size = 5, color =~Total_Accidents, colorscale = "Viridis")
-      ) %>%
+            x = ~Year,
+            y = ~Total_Accidents,
+            z = ~Total_Injuries,
+            type = "scatter3d",
+            mode = "markers",
+            marker = list(size = 5, color =~Total_Accidents, colorscale = "Viridis")
+    ) %>%
       layout(
         scene = list(
           xaxis = list(title = "Year"),
@@ -33,17 +33,17 @@ function(input, output, session) {
              (input$illumination == "All" | Illumination.Description == input$illumination),
              Hour >= input$timeOfDay[1] & Hour <= input$timeOfDay[2])
   })
- 
+  
   # **tab 1 Interactive Crash Map**
-
-    output$accidentMap <- renderLeaflet({
-      leaflet() %>% 
-        addTiles() %>%
-        setView(lng = mean(accidents$Longitude, na.rm = TRUE), lat = mean(accidents$Latitude, na.rm = TRUE), zoom = 10
-        )
-    })
-    
-observeEvent(input$searchBT, {     
+  
+  output$accidentMap <- renderLeaflet({
+    leaflet() %>% 
+      addTiles() %>%
+      setView(lng = mean(accidents$Longitude, na.rm = TRUE), lat = mean(accidents$Latitude, na.rm = TRUE), zoom = 10
+      )
+  })
+  
+  observeEvent(input$searchBT, {     
     data <- filteredData() 
     req(nrow(data) > 0) 
     pal <- colorFactor(
@@ -59,23 +59,23 @@ observeEvent(input$searchBT, {
       clearMarkers() %>% 
       clearControls() %>%
       addCircleMarkers(
-         data = subset(data, Fatality_category == "No Fatalities"),              
-         lng = ~Longitude, 
-                       lat = ~Latitude, 
-                       color = "deepskyblue4", 
-                       fillColor = ~pal(Fatality_category),
-                       radius = ~ifelse(Number.of.Injuries > 0, 1 + (Number.of.Injuries * 1.5), 1),
-                       fillOpacity = 0.7, stroke = TRUE, weight = 0.5, group = "Filtered",
-                       popup = ~paste("<b>Date:</b>", Date.and.Time, "<br><b>Injuries:</b>", Number.of.Injuries,
-                                      "<br><b>Fatalities:</b>", Number.of.Fatalities, "<br><b>Collision Type:</b>",
-                                      Collision.Type.Description, "<br><b>Hit&Run:</b>", Hit.and.Run,
-                                      "<br><b>Property Damage:</b>", Property.Damage)
-         )%>%
+        data = subset(data, Fatality_category == "No Fatalities"),              
+        lng = ~Longitude, 
+        lat = ~Latitude, 
+        color = "deepskyblue4", 
+        fillColor = ~pal(Fatality_category),
+        radius = ~ifelse(Number.of.Injuries > 0, 1 + (Number.of.Injuries * 1.5), 1),
+        fillOpacity = 0.7, stroke = TRUE, weight = 0.5, group = "Filtered",
+        popup = ~paste("<b>Date:</b>", Date.and.Time, "<br><b>Injuries:</b>", Number.of.Injuries,
+                       "<br><b>Fatalities:</b>", Number.of.Fatalities, "<br><b>Collision Type:</b>",
+                       Collision.Type.Description, "<br><b>Hit&Run:</b>", Hit.and.Run,
+                       "<br><b>Property Damage:</b>", Property.Damage)
+      )%>%
       addMarkers(
         data = subset(data, Fatality_category == "With Fatalities"),
         lng = ~Longitude, 
         lat = ~Latitude, 
-        icon = fatalPinIcon,
+        icon = fatalPinIcon, 
         popup = ~paste("<b>Date:</b>", Date.and.Time, "<br><b>Injuries:</b>", Number.of.Injuries,
                        "<br><b>Fatalities:</b>", Number.of.Fatalities, "<br><b>Collision Type:</b>", Collision.Type.Description, "<br><b>Hit&Run:</b>", Hit.and.Run,
                        "<br><b>Property Damage:</b>", Property.Damage),
@@ -86,14 +86,14 @@ observeEvent(input$searchBT, {
                  position = "topright") %>%
       
       addLegend("bottomright", pal =pal, values = data$Fatality_category, title = "Fatalities in Accident", opacity = 5)
-   })
-
+  })
+  
   
   # **Tab2 Accident Statistical Data
   output$pdfViewer <- renderUI({
-  if (input$statChartTab2 == "Top 15 Zip codes for accidents") {
-    tags$iframe(style = "height:600px; width:100%", src = "ZipCodes.pdf")
-  }
+    if (input$statChartTab2 == "Top 15 Zip codes for accidents") {
+      tags$iframe(style = "height:600px; width:100%", src = "ZipCodes.pdf")
+    }
   })
   output$statChart <- renderPlot({
     if(input$statChartTab2 == "Top 15 Zip codes for accidents") { 
@@ -190,7 +190,7 @@ observeEvent(input$searchBT, {
       p1 <- ggplot(accidents %>%
                      count(Collision.Type.Description, name = "AccidentCount") %>%
                      arrange(desc(AccidentCount)),
-                     aes(x = fct_reorder(Collision.Type.Description, AccidentCount), y = AccidentCount)) +
+                   aes(x = fct_reorder(Collision.Type.Description, AccidentCount), y = AccidentCount)) +
         geom_bar(stat = "identity", fill = "blue") +
         coord_flip()+
         labs(title = "Distribution of Collision Types in Traffic Accidents", x = "Collision Type", y = "Number of Accidents") +
@@ -221,9 +221,9 @@ observeEvent(input$searchBT, {
       
     } else if (input$statChartTab2 == "Brighter Roads, Safer Drives? Analyzing Illumination and Traffic Accidents") {
       ggplot(accidents %>%
-                     count(Illumination.Description, name = "AccidentCount") %>%
-                     arrange(desc(AccidentCount)),
-                   aes(x = fct_reorder(Illumination.Description, AccidentCount), y = AccidentCount)) +
+               count(Illumination.Description, name = "AccidentCount") %>%
+               arrange(desc(AccidentCount)),
+             aes(x = fct_reorder(Illumination.Description, AccidentCount), y = AccidentCount)) +
         geom_bar(stat = "identity", fill = "deepskyblue3") +
         coord_flip()+
         labs(title = "The Impact of Illumination on Accidents", x = "Illumination Conditions", y = "Number of Accidents") +
@@ -238,7 +238,7 @@ observeEvent(input$searchBT, {
     }
     
   })
- 
+  
   
   # **Tab 3 Time analysis**
   
@@ -275,7 +275,7 @@ observeEvent(input$searchBT, {
         theme(plot.title =element_text(size = 24, margin = margin(b = 60)), axis.title.x = element_text(size = 16, margin = margin(t = 20)), axis.title.y = element_text(size = 18), axis.text.x = element_text(size = 12), axis.text.y = element_text(size = 14))
     }  
   }) 
-   
+  
   
   # ** Tab 4 Raw Data Table** 
   filteredDataTab4 <- reactive({

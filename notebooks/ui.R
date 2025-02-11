@@ -7,18 +7,27 @@ fluidPage(
       .navbar-default .navbar-nav > .active > a { background-color: #F39C12; color: white; }
       .btn { background-color: #17A2B8; color: white; border-radius: 5px; }
   "))),
-  
+  div(
+    class = "logo-container",
+    tags$img(src = "Nashville CrashVille logo.png", height = "200px")
+  ),
   # create a navigation bar with 4 tabs and  users can use 4 filters for 1.date range, 2.weather, 3.illumination type and 4.time of the day
-  navbarPage("Music City CrashView Application",
+  navbarPage(
+    title = NULL,
+    windowTitle = "Music City CrashView Application",
+    id = "nav",
+  
    #tab1
-          tabPanel("Traffic Accidents in Nashville (2018-2024)",
-                      fluidPage(
-                        titlePanel("3D Plot of Traffic Accidents"),
-                        plotlyOutput("accident3DPlot")
+   tabPanel("Traffic Accidents in Nashville (2018-2024)",
+            fluidPage(
+              titlePanel("3D Plot of Traffic Accidents"),
+              div(style = "width: 100%; height: 80vh;",  # Auto-resize for different screens
+                  plotlyOutput("accident3DPlot", width = "100%", height = "100%")
                         )
+                      )
                       ),
    #tab 2          
-                  tabPanel("Interactive Crash Map", 
+    tabPanel("Interactive Crash Map", 
                       fluidRow( 
                         column(3, 
                                wellPanel(
@@ -63,7 +72,7 @@ fluidPage(
              
              
              #Tab3 : Accident Statistical Data
-             tabPanel("Accident Statistical Data",
+    tabPanel("Accident Statistical Data",
                       fluidRow(
                         column(3,
                                wellPanel(
@@ -90,7 +99,7 @@ fluidPage(
              
              
              # Tab4 : Time-based accident Analysis
-             tabPanel("Time-Based Accident Analysis",
+    tabPanel("Time-Based Accident Analysis",
                       fluidRow(
                         column(3,  
                                wellPanel(
@@ -107,7 +116,7 @@ fluidPage(
              
               
              # Tab 5: Raw Data Table
-             tabPanel("Raw Data Table", 
+    tabPanel("Raw Data Table",  
                       fluidRow(
                         column(3,  
                                wellPanel(
@@ -120,10 +129,10 @@ fluidPage(
                                )
                         ),
                         column(9,
-                               DTOutput("accidentDataTable")
+                               DTOutput("accidentDataTable"))
                         )
                       )
              )
   )
   
-)
+
