@@ -1,18 +1,13 @@
 
 library(shiny)
-library(tidyverse) 
-library(glue)
-library(sf) 
-library(lme4)
+library(tidyverse)  
 library(leaflet)
 library(shinythemes) 
 library(DT)
 library(scales)
 library(rsconnect)
-library(broom) 
 library(grid)
 library(gridExtra)
-library(data.table)
 library(plotly)
 
 
@@ -20,7 +15,7 @@ library(plotly)
 
 
 
-accidents <- readRDS("www/accidents.rds")
+accidents <- readRDS("www/accidents.rds") 
 
 
 accidents <- accidents %>% 
@@ -36,7 +31,7 @@ accidents <- accidents %>%
                        Month %in% c("September", "October", "November") ~ "Fall",
                        Month %in% c("December", "January", "February") ~ "Winter", TRUE ~ "Unknown"),
     Hour = format(Date.and.Time, "%H"),
-    Weekday = factor(weekdays(Date.and.Time), levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+    Weekday = factor(format(Date.and.Time, "%A"), levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
     DayType = ifelse(Weekday %in% c("Saturday", "Sunday"), "Weekend", "Weekday"),
     Zip.Code = as.character(Zip.Code),
     Accident = ifelse(Number.of.Injuries>0, "Injuries", "No Injuries")
@@ -46,11 +41,8 @@ accidents <- accidents %>%
 accidents <- accidents %>%
   mutate (Fatality_category = ifelse(Number.of.Fatalities == 0, "No Fatalities", "With Fatalities"))
 
-target_zipcodes <- c("37013", "37211", "37207", "37210")
-
-# Assign colors to each zip code
-zip_colors <- setNames(c("red", "blue", "green", "purple"), target_zipcodes) 
-
-filtered_zip <- accidents %>%
-  filter(Zip.Code %in% target_zipcodes)
-
+year_accidents <- accidents %>%
+  filter(Year != 2025) %>%
+  group_by(Year) %>%
+  summarise(Total_Accidents = n(), Total_Injuries = sum(Number.of.Injuries)) %>%
+  arrange(Year)

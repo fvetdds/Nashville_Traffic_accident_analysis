@@ -1,23 +1,25 @@
-library(shiny)
 function(input, output, session) { 
   accident_summary <- reactive ({
     accidents %>%
-      filter(Year != 2025) %>%
+      filter(Year != 2025) %>% 
       group_by(Year) %>%
-      summarise(Total_Accidents = n(), Total_Injuries = sum(Number.of.Injuries))
+      summarise(Total_Accidents = n(), Total_Injuries = sum(Number.of.Injuries)) %>%
+      arrange(Year) 
   })
+  
   output$accident3DPlot <- renderPlotly({
     plot_ly(accident_summary(),
             x = ~Year,
             y = ~Total_Accidents,
             z = ~Total_Injuries,
             type = "scatter3d",
-            mode = "markers",
+            mode = "lines+markers",
+            line = list(color = "red", width = 2),
             marker = list(size = 5, color = "blue")
     ) %>%
       layout(
         scene = list(
-          xaxis = list(title = "Year"),
+          xaxis = list(title = "Year", autorange = "reversed"),  # Reverse Year order
           yaxis = list(title = "Total Accident"),
           zaxis = list(title = "Total Injuries")
         )
