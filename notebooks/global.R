@@ -41,8 +41,4 @@ accidents <- accidents %>%
 accidents <- accidents %>%
   mutate (Fatality_category = ifelse(Number.of.Fatalities == 0, "No Fatalities", "With Fatalities"))
 
-year_accidents <- accidents %>%
-  filter(Year != 2025) %>%
-  group_by(Year) %>%
-  summarise(Total_Accidents = n(), Total_Injuries = sum(Number.of.Injuries)) %>%
-  arrange(Year)
+
