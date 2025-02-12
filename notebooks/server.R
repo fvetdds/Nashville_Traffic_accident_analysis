@@ -4,8 +4,8 @@ function(input, output, session) {
       filter(Year != 2025) %>% 
       group_by(Year) %>%
       summarise(Total_Accidents = n(), Total_Injuries = sum(Number.of.Injuries)) %>%
-      arrange(Year) 
-  })
+      arrange(Year, Total_Accidents) 
+  }) 
   
   output$accident3DPlot <- renderPlotly({
     plot_ly(accident_summary(),
