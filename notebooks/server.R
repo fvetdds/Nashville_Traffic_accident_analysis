@@ -208,37 +208,48 @@ function(input, output, session) {
         
       } else if (input$statChartTab2 == "When Do Most Accidents Happen? A Look at Weather Trends") {
         ggplot(accidents %>%
-                 count(Weather.Description, name = "AccidentCount") %>% 
-                 mutate(Percentage = (AccidentCount/sum(AccidentCount))*100) %>%
-                 arrange(desc(Percentage)),
-               aes(x = fct_reorder(Weather.Description, Percentage), y = Percentage)) +
+                 mutate(Date = as.Date(Date.and.Time)) %>%
+                 group_by(Date, Weather.Description) %>%
+                 summarise(AccidentCount = n(), .groups = "drop") %>%
+                 group_by(Weather.Description) %>%
+                 summarise(Average_Accidents_Per_Day = mean(AccidentCount, na.rm = TRUE)) %>%
+                 arrange(desc(Average_Accidents_Per_Day)),
+               aes(x = fct_reorder(Weather.Description, Average_Accidents_Per_Day), y = Average_Accidents_Per_Day)) +
           geom_bar(stat = "identity", fill = "brown4") +
           coord_flip()+
-          labs(title = "The Link Between Weather Condition and Accidents", x = "Weather Conditions", y = "Percentage of Accidents") +
+          labs(title = "Average Accidents per Day by Weather Condition", 
+               x = "Weather Conditions", 
+               y = "Average Accidents per Day") +
           scale_y_continuous() +
           theme_minimal() +
           theme(plot.title = element_text(size = 20), 
                 axis.title.x =  element_text(size =16), 
                 axis.title.y = element_text(size = 16), 
                 axis.text.x = element_text(size =12, hjust = 1.0), 
-                axis.text.y = element_text(size =12))
+                axis.text.y = element_text(size =12))  
+      
         
       } else if (input$statChartTab2 == "Brighter Roads, Safer Drives? Analyzing Illumination and Traffic Accidents") {
         ggplot(accidents %>%
-                 count(Illumination.Description, name = "AccidentCount") %>%
-                 arrange(desc(AccidentCount)),
-               aes(x = fct_reorder(Illumination.Description, AccidentCount), y = AccidentCount)) +
+                 mutate(Date = as.Date(Date.and.Time)) %>%
+                 group_by(Date, Illumination.Description) %>%
+                 summarise(AccidentCount = n(), .groups = "drop") %>%
+                 group_by(Illumination.Description) %>%
+                 summarise(Average_Accidents_Per_Day = mean(AccidentCount, na.rm = TRUE)) %>%
+                 arrange(desc(Average_Accidents_Per_Day)),
+               aes(x = fct_reorder(Illumination.Description, Average_Accidents_Per_Day), y = Average_Accidents_Per_Day)) +
           geom_bar(stat = "identity", fill = "deepskyblue3") +
           coord_flip()+
-          labs(title = "The Impact of Illumination on Accidents", x = "Illumination Conditions", y = "Number of Accidents") +
-          scale_y_continuous(labels = scales::comma,
-                             limits = c(0, 150000)) +
+          labs(title = "Average Accidents per Day by Illumination Condition", 
+               x = "Illumination Conditions", 
+               y = "Average Accidents per Day") +
+          scale_y_continuous(labels = scales::comma) +
           theme_minimal() +
           theme(plot.title = element_text(size = 20), 
                 axis.title.x =  element_text(size =16), 
                 axis.title.y = element_text(size = 16), 
                 axis.text.x = element_text(size =12, hjust = 1.0), 
-                axis.text.y = element_text(size =12))
+                axis.text.y = element_text(size =12))  
       }
       
     })
