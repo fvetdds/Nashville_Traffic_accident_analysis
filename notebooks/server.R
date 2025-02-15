@@ -22,7 +22,10 @@ function(input, output, session) {
         layout(
           scene = list(
             xaxis = list(title = "Year", autorange = "reversed"),  # Reverse Year order
-            yaxis = list(title = "Total Accidents"),
+            yaxis = list(title = "Total Accidents", 
+                         titlefont = list(color = "white"),   # Dim the label
+                         tickfont = list(color = "white"),    # Dim the tick labels
+                         gridcolor = "white"),           # Dim the grid lines
             zaxis = list(title = "Total Injuries")
           )
         )
